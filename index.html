@@ -7,7 +7,7 @@
 </head>
 <body>
     <h1>클릭 카운터</h1>
-    <h2 id="counter">0</h2>
+    <h2 id="counter">로딩 중...</h2> <!-- 기본값 '로딩 중...' -->
     <button onclick="increment()">클릭!</button>
 
     <!-- Firebase SDK -->
@@ -31,15 +31,20 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // 페이지 로드 시 카운터 값을 불러오기
+        // 페이지 로드 시 카운터 값을 즉시 불러오기
         window.loadCounter = function () {
             const counterRef = ref(db, "counter");
 
             get(counterRef).then((snapshot) => {
-                let currentCount = snapshot.exists() ? snapshot.val() : 0;
-                document.getElementById("counter").innerText = currentCount;
+                if (snapshot.exists()) {
+                    document.getElementById("counter").innerText = snapshot.val();
+                } else {
+                    document.getElementById("counter").innerText = "0"; // 데이터가 없으면 0으로 초기화
+                    set(counterRef, 0); // DB에 0 저장
+                }
             }).catch((error) => {
                 console.error("카운터 데이터를 불러오는 중 오류 발생:", error);
+                document.getElementById("counter").innerText = "오류 발생";
             });
         };
 
@@ -58,10 +63,8 @@
                 console.error("카운터 업데이트 중 오류 발생:", error);
             });
         };
-    </script>
 
-    <!-- 페이지 로드 시 카운터 값 불러오기 -->
-    <script>
+        // 페이지 로드 시 즉시 카운터 값 불러오기
         window.onload = loadCounter;
     </script>
 </body>
