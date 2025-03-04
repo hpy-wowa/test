@@ -31,7 +31,19 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // 클릭 카운터 함수 (window에 연결)
+        // 페이지 로드 시 카운터 값을 불러오기
+        window.loadCounter = function () {
+            const counterRef = ref(db, "counter");
+
+            get(counterRef).then((snapshot) => {
+                let currentCount = snapshot.exists() ? snapshot.val() : 0;
+                document.getElementById("counter").innerText = currentCount;
+            }).catch((error) => {
+                console.error("카운터 데이터를 불러오는 중 오류 발생:", error);
+            });
+        };
+
+        // 클릭 시 카운터 증가 함수
         window.increment = function () {
             const counterRef = ref(db, "counter");
 
@@ -39,11 +51,18 @@
                 let currentCount = snapshot.exists() ? snapshot.val() : 0;
                 let newCount = currentCount + 1;
 
-                set(counterRef, newCount);
-
-                document.getElementById("counter").innerText = newCount;
+                set(counterRef, newCount).then(() => {
+                    document.getElementById("counter").innerText = newCount;
+                });
+            }).catch((error) => {
+                console.error("카운터 업데이트 중 오류 발생:", error);
             });
         };
+    </script>
+
+    <!-- 페이지 로드 시 카운터 값 불러오기 -->
+    <script>
+        window.onload = loadCounter;
     </script>
 </body>
 </html>
