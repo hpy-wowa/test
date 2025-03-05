@@ -4,19 +4,55 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>클릭 카운터</title>
+    <style>
+        /* 중앙 정렬 스타일 */
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            text-align: center;
+        }
+        img {
+            max-width: 300px;
+            height: auto;
+            margin-bottom: 20px;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background-color: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+        .progress {
+            height: 100%;
+            width: 0;
+            background-color: #76c7c0;
+            transition: width 0.3s ease;
+        }
+    </style>
 </head>
 <body>
-    <h1>클릭 카운터</h1>
-    <p><strong>최근 클릭 시간:</strong> <span id="lastClickTime">로딩 중...</span></p>
-    <h2 id="counter">로딩 중...</h2>
-    <button onclick="increment()">클릭!</button>
+    <div>
+        <img id="displayImage" src="default-image.jpg" alt="기본 이미지">
+        <h1>클릭 카운터</h1>
+        <h2 id="counter">로딩 중...</h2>
+        <button id="clickButton" onclick="increment()">클릭!</button>
+        <button onclick="activateDefense()">방어</button>
+
+        <div class="progress-bar">
+            <div id="progress" class="progress"></div>
+        </div>
+    </div>
 
     <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
-        import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-database.js";
+        import { getDatabase, ref, get, set, onValue } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-database.js";
 
-        // Firebase 설정
         const firebaseConfig = {
             apiKey: "AIzaSyBeWxeTcJd1PD2IMlg1PvuWvMpe-YQCMf0",
             authDomain: "wowa-btn-click.firebaseapp.com",
@@ -28,53 +64,82 @@
             measurementId: "G-51W59BP884"
         };
 
-        // Firebase 초기화
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // 한국 시간 포맷팅 함수
-        function formatKoreanTime(timestamp) {
-            const date = new Date(timestamp);
-            return date.toLocaleString("ko-KR", { timeZone: "Asia/Seoul" });
+        let resetImageTimeout;
+        let progress = 0;
+
+        const progressRef = ref(db, "progress");
+        const defenseRef = ref(db, "defense");
+
+        function updateProgressBar() {
+            progress += 1;
+            if (progress > 100) progress = 100;
+            set(progressRef, progress);
         }
 
-        // 페이지 로드 시 카운터 & 최근 클릭 시간 불러오기
-        window.loadCounter = function () {
-            const counterRef = ref(db, "counter");
-            const lastClickRef = ref(db, "lastClickTime");
+        setInterval(updateProgressBar, 1000); // 1초마다 1% 증가
 
-            get(counterRef).then((snapshot) => {
-                document.getElementById("counter").innerText = snapshot.exists() ? snapshot.val() : 0;
-            });
-
-            get(lastClickRef).then((snapshot) => {
-                if (snapshot.exists()) {
-                    document.getElementById("lastClickTime").innerText = formatKoreanTime(snapshot.val());
-                } else {
-                    document.getElementById("lastClickTime").innerText = "아직 클릭 없음";
+        onValue(progressRef, (snapshot) => {
+            if (snapshot.exists()) {
+                progress = snapshot.val();
+                const progressBar = document.getElementById("progress");
+                progressBar.style.width = `${progress}%`;
+                if (progress >= 100) {
+                    document.getElementById("displayImage").src = "completed-image.jpg";
                 }
-            });
-        };
+            }
+        });
 
-        // 클릭 시 카운터 & 최근 클릭 시간 업데이트
+        onValue(defenseRef, (snapshot) => {
+            if (snapshot.exists() && snapshot.val()) {
+                disableClickButton();
+                setTimeout(() => set(defenseRef, false), 3000); // 3초 후 방어 해제
+            }
+        });
+
         window.increment = function () {
             const counterRef = ref(db, "counter");
-            const lastClickRef = ref(db, "lastClickTime");
 
             get(counterRef).then((snapshot) => {
                 let currentCount = snapshot.exists() ? snapshot.val() : 0;
                 let newCount = currentCount + 1;
-                
-                set(counterRef, newCount);
-                set(lastClickRef, Date.now());
 
+                set(counterRef, newCount);
                 document.getElementById("counter").innerText = newCount;
-                document.getElementById("lastClickTime").innerText = formatKoreanTime(Date.now());
+
+                const imageElement = document.getElementById("displayImage");
+                imageElement.src = "clicked-image.jpg";
+
+                clearTimeout(resetImageTimeout);
+                resetImageTimeout = setTimeout(() => {
+                    imageElement.src = "default-image.jpg";
+                }, 3000);
+
+                progress = Math.max(progress - 5, 0);
+                set(progressRef, progress);
             });
         };
 
-        // 페이지 로드 시 카운터 & 시간 불러오기
-        window.onload = loadCounter;
+        window.activateDefense = function () {
+            set(defenseRef, true);
+        };
+
+        function disableClickButton() {
+            const clickButton = document.getElementById("clickButton");
+            clickButton.disabled = true;
+            setTimeout(() => {
+                clickButton.disabled = false;
+            }, 3000);
+        }
+
+        window.onload = function () {
+            const counterRef = ref(db, "counter");
+            get(counterRef).then((snapshot) => {
+                document.getElementById("counter").innerText = snapshot.exists() ? snapshot.val() : 0;
+            });
+        };
     </script>
 </body>
 </html>
