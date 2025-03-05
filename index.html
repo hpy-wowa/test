@@ -37,7 +37,7 @@
 </head>
 <body>
     <div>
-        <img id="displayImage" src="default-image.jpg" alt="기본 이미지">
+        <img id="displayImage" src="default-image.png" alt="기본 이미지">
         <h1>클릭 카운터</h1>
         <h2 id="counter">로딩 중...</h2>
         <button id="clickButton" onclick="increment()">클릭!</button>
@@ -87,7 +87,7 @@
                 const progressBar = document.getElementById("progress");
                 progressBar.style.width = `${progress}%`;
                 if (progress >= 100) {
-                    document.getElementById("displayImage").src = "completed-image.jpg";
+                    document.getElementById("displayImage").src = "completed-image.png";
                 }
             }
         });
