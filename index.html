@@ -37,11 +37,12 @@
 </head>
 <body>
     <div>
-        <img id="displayImage" src="default-image.png" alt="기본 이미지">
+        <img id="displayImage" src="default-image.jpg" alt="기본 이미지">
         <h1>클릭 카운터</h1>
         <h2 id="counter">로딩 중...</h2>
         <button id="clickButton" onclick="increment()">클릭!</button>
         <button onclick="activateDefense()">방어</button>
+        <input type="file" id="imageUploader" accept="image/*" onchange="uploadImage(event)">
 
         <div class="progress-bar">
             <div id="progress" class="progress"></div>
@@ -52,6 +53,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
         import { getDatabase, ref, get, set, onValue } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-database.js";
+        import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-storage.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBeWxeTcJd1PD2IMlg1PvuWvMpe-YQCMf0",
@@ -66,6 +68,7 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
+        const storage = getStorage(app);
 
         let resetImageTimeout;
         let progress = 0;
@@ -76,14 +79,17 @@
 
         // 이미지 변경 함수
         function updateImage(imageName) {
-            set(imageRef, imageName);
+            set(imageRef, imageName);  // Realtime DB에 저장된 URL로 이미지 업데이트
         }
 
         // 이미지 상태를 실시간으로 반영
         onValue(imageRef, (snapshot) => {
             if (snapshot.exists()) {
                 const imageName = snapshot.val();
-                document.getElementById("displayImage").src = imageName;
+                const imageElement = document.getElementById("displayImage");
+                if (imageElement) {
+                    imageElement.src = imageName;  // 이미지 요소의 src를 Realtime DB에서 가져온 URL로 변경
+                }
             }
         });
 
@@ -153,6 +159,25 @@
                 document.getElementById("counter").innerText = snapshot.exists() ? snapshot.val() : 0;
             });
         };
+
+        // 이미지 파일 업로드 함수
+        function uploadImage(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const storagePath = storageRef(storage, 'images/' + file.name);
+                uploadBytes(storagePath, file).then((snapshot) => {
+                    console.log('Uploaded a file!');
+                    getDownloadURL(snapshot.ref).then((url) => {
+                        // Firebase Realtime DB에 이미지 URL을 저장
+                        updateImage(url);
+                    }).catch((error) => {
+                        console.error('Failed to get URL:', error);
+                    });
+                }).catch((error) => {
+                    console.error('Upload failed:', error);
+                });
+            }
+        }
     </script>
 </body>
 </html>
