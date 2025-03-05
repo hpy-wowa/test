@@ -37,7 +37,7 @@
 </head>
 <body>
     <div>
-        <img id="displayImage" src="default-image.jpg" alt="기본 이미지">
+        <img id="displayImage" src="default-image.png" alt="기본 이미지">
         <h1>클릭 카운터</h1>
         <h2 id="counter">로딩 중...</h2>
         <button id="clickButton" onclick="increment()">클릭!</button>
@@ -72,6 +72,20 @@
 
         const progressRef = ref(db, "progress");
         const defenseRef = ref(db, "defense");
+        const imageRef = ref(db, "image");
+
+        // 이미지 변경 함수
+        function updateImage(imageName) {
+            set(imageRef, imageName);
+        }
+
+        // 이미지 상태를 실시간으로 반영
+        onValue(imageRef, (snapshot) => {
+            if (snapshot.exists()) {
+                const imageName = snapshot.val();
+                document.getElementById("displayImage").src = imageName;
+            }
+        });
 
         function updateProgressBar() {
             progress += 1;
@@ -87,7 +101,7 @@
                 const progressBar = document.getElementById("progress");
                 progressBar.style.width = `${progress}%`;
                 if (progress >= 100) {
-                    document.getElementById("displayImage").src = "completed-image.png";
+                    updateImage("completed-image.png"); // 100% 도달 시 이미지 변경
                 }
             }
         });
@@ -109,12 +123,11 @@
                 set(counterRef, newCount);
                 document.getElementById("counter").innerText = newCount;
 
-                const imageElement = document.getElementById("displayImage");
-                imageElement.src = "clicked-image.png";
+                updateImage("clicked-image.png"); // 클릭 시 이미지 변경
 
                 clearTimeout(resetImageTimeout);
                 resetImageTimeout = setTimeout(() => {
-                    imageElement.src = "default-image.png";
+                    updateImage("default-image.png"); // 10ms 후 기본 이미지로 변경
                 }, 10);
 
                 progress = Math.max(progress - 5, 0);
