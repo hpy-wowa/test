@@ -80,13 +80,11 @@
 
         <h1>100%를 채워라!</h1>
         
-        <br>
         
-        <h3>방해 버튼을 누르면 -5%</h3>
+        <h3>방해버튼: 누르면 -1%씩 줄어든다</h3>
         
-        <br>
         
-        <h3>방어 버튼을 누르면 3초간 방해 불가 </h3>
+        <h3>방어버튼: 누르면 3초간 방해 불가 </h3>
         
         <h2 id="counter">로딩 중...</h2>
 
@@ -244,7 +242,7 @@
 
 
 
-                progress = Math.max(progress - 5, 0);
+                progress = Math.max(progress - 1, 0);
 
                 set(progressRef, progress);
 
