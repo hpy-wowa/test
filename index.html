@@ -1,183 +1,289 @@
 <!DOCTYPE html>
+
 <html lang="ko">
+
 <head>
+
     <meta charset="UTF-8">
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>클릭 카운터</title>
+
     <style>
+
         /* 중앙 정렬 스타일 */
+
         body {
+
             display: flex;
+
             justify-content: center;
+
             align-items: center;
+
             height: 100vh;
+
             margin: 0;
+
             text-align: center;
+
         }
+
         img {
+
             max-width: 300px;
+
             height: auto;
+
             margin-bottom: 20px;
+
         }
+
         .progress-bar {
+
             width: 100%;
+
             height: 20px;
+
             background-color: #e0e0e0;
+
             border-radius: 10px;
+
             overflow: hidden;
+
             margin-top: 20px;
+
         }
+
         .progress {
+
             height: 100%;
+
             width: 0;
+
             background-color: #76c7c0;
+
             transition: width 0.3s ease;
+
         }
+
     </style>
+
 </head>
+
 <body>
+
     <div>
-        <img id="displayImage" src="default-image.jpg" alt="기본 이미지">
+
+        <img id="displayImage" src="default-image.png" alt="기본 이미지">
+
         <h1>클릭 카운터</h1>
+
         <h2 id="counter">로딩 중...</h2>
+
         <button id="clickButton" onclick="increment()">클릭!</button>
+
         <button onclick="activateDefense()">방어</button>
-        <input type="file" id="imageUploader" accept="image/*" onchange="uploadImage(event)">
+
+
 
         <div class="progress-bar">
+
             <div id="progress" class="progress"></div>
+
         </div>
+
     </div>
 
+
+
     <!-- Firebase SDK -->
+
     <script type="module">
+
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
+
         import { getDatabase, ref, get, set, onValue } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-database.js";
-        import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-storage.js";
+
+
 
         const firebaseConfig = {
+
             apiKey: "AIzaSyBeWxeTcJd1PD2IMlg1PvuWvMpe-YQCMf0",
+
             authDomain: "wowa-btn-click.firebaseapp.com",
+
             databaseURL: "https://wowa-btn-click-default-rtdb.firebaseio.com",
+
             projectId: "wowa-btn-click",
+
             storageBucket: "wowa-btn-click.appspot.com",
+
             messagingSenderId: "777270183489",
+
             appId: "1:777270183489:web:3b5d2113b3d21dd67ba8c0",
+
             measurementId: "G-51W59BP884"
+
         };
 
+
+
         const app = initializeApp(firebaseConfig);
+
         const db = getDatabase(app);
-        const storage = getStorage(app);
+
+
 
         let resetImageTimeout;
+
         let progress = 0;
 
+
+
         const progressRef = ref(db, "progress");
+
         const defenseRef = ref(db, "defense");
-        const imageRef = ref(db, "image");
 
-        // 이미지 변경 함수
-        function updateImage(imageName) {
-            set(imageRef, imageName);  // Realtime DB에 저장된 URL로 이미지 업데이트
-        }
 
-        // 이미지 상태를 실시간으로 반영
-        onValue(imageRef, (snapshot) => {
-            if (snapshot.exists()) {
-                const imageName = snapshot.val();
-                const imageElement = document.getElementById("displayImage");
-                if (imageElement) {
-                    imageElement.src = imageName;  // 이미지 요소의 src를 Realtime DB에서 가져온 URL로 변경
-                }
-            }
-        });
 
         function updateProgressBar() {
+
             progress += 1;
+
             if (progress > 100) progress = 100;
+
             set(progressRef, progress);
+
         }
+
+
 
         setInterval(updateProgressBar, 1000); // 1초마다 1% 증가
 
+
+
         onValue(progressRef, (snapshot) => {
+
             if (snapshot.exists()) {
+
                 progress = snapshot.val();
+
                 const progressBar = document.getElementById("progress");
+
                 progressBar.style.width = `${progress}%`;
+
                 if (progress >= 100) {
-                    updateImage("completed-image.png"); // 100% 도달 시 이미지 변경
+
+                    document.getElementById("displayImage").src = "completed-image.png";
+
                 }
+
             }
+
         });
+
+
 
         onValue(defenseRef, (snapshot) => {
+
             if (snapshot.exists() && snapshot.val()) {
+
                 disableClickButton();
-                setTimeout(() => set(defenseRef, false), 5000); // 5초 후 방어 해제
+
+                setTimeout(() => set(defenseRef, false), 3000); // 3초 후 방어 해제
+
             }
+
         });
 
+
+
         window.increment = function () {
+
             const counterRef = ref(db, "counter");
 
+
+
             get(counterRef).then((snapshot) => {
+
                 let currentCount = snapshot.exists() ? snapshot.val() : 0;
+
                 let newCount = currentCount + 1;
 
+
+
                 set(counterRef, newCount);
+
                 document.getElementById("counter").innerText = newCount;
 
-                updateImage("clicked-image.png"); // 클릭 시 이미지 변경
+
+
+                const imageElement = document.getElementById("displayImage");
+
+                imageElement.src = "clicked-image.png";
+
+
 
                 clearTimeout(resetImageTimeout);
+
                 resetImageTimeout = setTimeout(() => {
-                    updateImage("default-image.png"); // 10ms 후 기본 이미지로 변경
-                }, 10);
+
+                    imageElement.src = "default-image.png";
+
+                }, 3000);
+
+
 
                 progress = Math.max(progress - 5, 0);
+
                 set(progressRef, progress);
+
             });
+
         };
+
+
 
         window.activateDefense = function () {
+
             set(defenseRef, true);
+
         };
+
+
 
         function disableClickButton() {
+
             const clickButton = document.getElementById("clickButton");
+
             clickButton.disabled = true;
+
             setTimeout(() => {
+
                 clickButton.disabled = false;
-            }, 5000);
+
+            }, 100);
+
         }
+
+
 
         window.onload = function () {
+
             const counterRef = ref(db, "counter");
+
             get(counterRef).then((snapshot) => {
+
                 document.getElementById("counter").innerText = snapshot.exists() ? snapshot.val() : 0;
+
             });
+
         };
 
-        // 이미지 파일 업로드 함수
-        function uploadImage(event) {
-            const file = event.target.files[0];
-            if (file) {
-                const storagePath = storageRef(storage, 'images/' + file.name);
-                uploadBytes(storagePath, file).then((snapshot) => {
-                    console.log('Uploaded a file!');
-                    getDownloadURL(snapshot.ref).then((url) => {
-                        // Firebase Realtime DB에 이미지 URL을 저장
-                        updateImage(url);
-                    }).catch((error) => {
-                        console.error('Failed to get URL:', error);
-                    });
-                }).catch((error) => {
-                    console.error('Upload failed:', error);
-                });
-            }
-        }
     </script>
+
 </body>
+
 </html>
