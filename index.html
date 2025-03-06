@@ -132,6 +132,7 @@
 
         let resetImageTimeout;
         let progress = 0;
+        let isButtonClicked = false; // 방해! 버튼 클릭 여부 상태 변수
 
         const progressRef = ref(db, "progress");
         const defenseRef = ref(db, "defense");
@@ -150,9 +151,10 @@
                 const progressBar = document.getElementById("progress");
                 progressBar.style.width = `${progress}%`;
 
-                // 프로그레스가 100 이상일 때 clicked-image.png로 변경, 아니면 default-image.png
                 const imageElement = document.getElementById("displayImage");
-                if (progress >= 100) {
+
+                // 프로그레스가 100 이상일 때 clicked-image.png로 변경, 아니면 default-image.png
+                if (progress >= 100 || isButtonClicked) {
                     imageElement.src = "clicked-image.png";
                 } else {
                     imageElement.src = "default-image.png";
@@ -177,6 +179,7 @@
                 set(counterRef, newCount);
                 document.getElementById("counter").innerText = newCount;
 
+                // 방해 버튼 클릭했을 때 clicked-image.png로 변경
                 const imageElement = document.getElementById("displayImage");
                 imageElement.src = "clicked-image.png";
 
@@ -187,6 +190,9 @@
 
                 progress = Math.max(progress - 1, 0);
                 set(progressRef, progress);
+
+                // 방해 버튼 클릭 상태 설정
+                isButtonClicked = true;
             });
         };
 
