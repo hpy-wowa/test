@@ -154,11 +154,13 @@
                 const imageElement = document.getElementById("displayImage");
                 const counterElement = document.getElementById("counter");
 
-                // 프로그레스가 100 이상일 때 clicked-image.png로 변경, 아니면 default-image.png
-                if (progress >= 100 || isButtonClicked) {
-                    imageElement.src = "full-image.png";
+                // 프로그레스가 100 이상일 때 third-image.png로 변경, 아니면 clicked-image.png
+                if (progress >= 100) {
+                    imageElement.src = "third-image.png";  // 100% 도달 시 3번째 이미지로 변경
+                } else if (isButtonClicked) {
+                    imageElement.src = "clicked-image.png"; // 방해 버튼 클릭 시 clicked-image.png로 변경
                 } else {
-                    imageElement.src = "default-image.png";
+                    imageElement.src = "default-image.png";  // 그 외에는 기본 이미지로 설정
                 }
 
                 // 숫자 대신 퍼센트 표시하고, 90% 이상일 때 빨간색으로 변경
