@@ -149,8 +149,13 @@
                 progress = snapshot.val();
                 const progressBar = document.getElementById("progress");
                 progressBar.style.width = `${progress}%`;
+
+                // 프로그레스가 100 이상일 때 clicked-image.png로 변경, 아니면 default-image.png
+                const imageElement = document.getElementById("displayImage");
                 if (progress >= 100) {
-                    document.getElementById("displayImage").src = "clicked-image.png";
+                    imageElement.src = "clicked-image.png";
+                } else {
+                    imageElement.src = "default-image.png";
                 }
             }
         });
