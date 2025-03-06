@@ -152,12 +152,21 @@
                 progressBar.style.width = `${progress}%`;
 
                 const imageElement = document.getElementById("displayImage");
+                const counterElement = document.getElementById("counter");
 
                 // 프로그레스가 100 이상일 때 clicked-image.png로 변경, 아니면 default-image.png
                 if (progress >= 100 || isButtonClicked) {
                     imageElement.src = "clicked-image.png";
                 } else {
                     imageElement.src = "default-image.png";
+                }
+
+                // 숫자 대신 퍼센트 표시하고, 90% 이상일 때 빨간색으로 변경
+                counterElement.innerText = `${progress}%`;
+                if (progress >= 90) {
+                    counterElement.style.color = "red"; // 90% 이상일 때 빨간색으로 변경
+                } else {
+                    counterElement.style.color = "black"; // 90% 미만일 때 검은색으로 변경
                 }
             }
         });
