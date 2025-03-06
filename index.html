@@ -235,6 +235,13 @@
             get(counterRef).then((snapshot) => {
                 document.getElementById("counter").innerText = snapshot.exists() ? snapshot.val() : 0;
             });
+
+            // "누군가 들어왔어요 -20%" 텍스트로 변경 후 1초 후 다시 원래 텍스트로 돌아가도록 처리
+            const counterElement = document.getElementById("counter");
+            counterElement.innerText = "누군가 들어왔어요 -20%";
+            setTimeout(() => {
+                counterElement.innerText = `${progress}%`;  // 원래 퍼센트로 되돌리기
+            }, 1000);  // 1초 후 돌아가기
         };
 
     </script>
