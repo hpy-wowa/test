@@ -185,8 +185,9 @@
 
                 clearTimeout(resetImageTimeout);
                 resetImageTimeout = setTimeout(() => {
-                    imageElement.src = "default-image.png";
-                }, 100);
+                    imageElement.src = "default-image.png";  // 1초 뒤 default-image.png로 변경
+                    isButtonClicked = false;  // 버튼 클릭 상태 리셋
+                }, 1000);  // 1초 뒤에 변경되도록 설정
 
                 progress = Math.max(progress - 1, 0);
                 set(progressRef, progress);
